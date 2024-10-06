@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+    <script>
+        async function RequisicoesParalelas() {
+            try {
+                const endpoints = [
+                'https://jsonplaceholder.typicode.com/posts/1',
+                'https://jsonplaceholder.typicode.com/posts/2',
+                'https://jsonplaceholder.typicode.com/posts/3'
+                ]
+
+                const requisicoes = endpoints.map(url => fetch(url).then(res => res.json()))
+                
+                const resultados = await Promise.all(requisicoes)
+
+                resultados.forEach((dados, index) => {
+                console.log(`Resposta da requisição ${index + 1}:`)
+                console.log(dados)
+                console.log('---')
+                })
+            } catch (erro) {
+                console.error('Ocorreu um erro:', erro)
+            }
+        }
+
+
+        RequisicoesParalelas()
+    </script>
+</body>
+</html>

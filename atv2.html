@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Filmes TMDb</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #000;
+        }
+        #resultado {
+            margin-top: 4rem;
+            padding: 20px;
+            border-radius: 15px;
+            color: #fff;
+            box-shadow: 0px 0px 15px gray;
+
+
+        }
+        .erro {
+            color: red;
+        }
+        .movie-poster {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        input{
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border-radius: 5px;
+            border: transparent;
+        }
+        button {
+            padding: 10px 30px;
+            font-size: 16px;
+            background-color: transparent;
+            color: #01b4e4;
+            font-weight: bold;
+            border: 2px solid #01b4e4;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: .4s ease-in-out;
+        }
+        button:hover {
+            background-color: #0192b8;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pesquisa de Filmes TMDb</h1>
+    <form id="pesquisaForm">
+        <input type="text" id="filmePesquisa" placeholder="Digite o nome do filme" required>
+        <button type="submit">Pesquisar</button>
+    </form>
+    <div id="resultado"></div>
+    
+    <script>
+        const API_KEY = '02a6236bc1b43363643a68ddaf07cc19';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMG_URL = 'https://image.tmdb.org/t/p/w500';
+
+        async function pesquisarFilme(query) {
+            const url = `${BASE_URL}/search/movie?api_key=${API_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+
+        async function obterDetalhesFilme(movieId) {
+            const url = `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=pt-BR`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+
+        document.getElementById('pesquisaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = document.getElementById('filmePesquisa').value;
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = 'Pesquisando...';
+
+            try {
+                const resultadoPesquisa = await pesquisarFilme(query);
+                
+                if (resultadoPesquisa.results.length > 0) {
+                    const primeiroFilme = resultadoPesquisa.results[0];
+                    const filme = await obterDetalhesFilme(primeiroFilme.id);
+                    
+                    const posterPath = filme.poster_path 
+                        ? `${IMG_URL}${filme.poster_path}` 
+                        : 'https://via.placeholder.com/200x300.png?text=Sem+Imagem';
+
+                    resultadoDiv.innerHTML = `
+                        <img src="${posterPath}" alt="${filme.title}" class="movie-poster">
+                        <h2>${filme.title}</h2>
+                        <p><strong>Data de Lançamento:</strong> ${filme.release_date}</p>
+                        <p><strong>Sinopse:</strong> ${filme.overview || 'Não disponível'}</p>
+                        <p><strong>Avaliação:</strong> ${filme.vote_average}/10</p>
+                    `;
+                } else {
+                    resultadoDiv.innerHTML = '<p class="erro">Nenhum filme encontrado com esse nome.</p>';
+                }
+            } catch (error) {
+                console.error('Erro na pesquisa:', error);
+                resultadoDiv.innerHTML = '<p class="erro">Ocorreu um erro ao pesquisar o filme. Por favor, verifique as informações de depuração abaixo e tente novamente.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
